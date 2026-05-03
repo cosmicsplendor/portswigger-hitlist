@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1-Week PortSwigger Bootcamp Tracker</title>
+    <!-- Using Tailwind CSS for fast styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .do-yes { border-left: 4px solid #10b981; background: #f0fdf4; }
+        .do-no { border-left: 4px solid #ef4444; background: #fef2f2; opacity: 0.6; }
+        .solved-item { text-decoration: line-through; opacity: 0.5; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-3xl font-bold mb-2 text-blue-700">PortSwigger 1-Week Hitlist</h1>
+        <p class="mb-6 text-gray-600 text-sm">Focus strictly on high ROI labs to avoid diminishing returns.</p>
+
+        <!-- Progress Stats -->
+        <div class="grid grid-cols-3 gap-4 mb-6 bg-gray-50 p-4 rounded border">
+            <div class="text-center">
+                <span class="block text-2xl font-bold text-gray-700" id="stat-total">0</span>
+                <span class="text-xs uppercase text-gray-500 font-semibold">Total "Must Do"</span>
+            </div>
+            <div class="text-center">
+                <span class="block text-2xl font-bold text-green-600" id="stat-solved">0</span>
+                <span class="text-xs uppercase text-gray-500 font-semibold">Completed</span>
+            </div>
+            <div class="text-center">
+                <span class="block text-2xl font-bold text-blue-600" id="stat-remaining">0</span>
+                <span class="text-xs uppercase text-gray-500 font-semibold">Remaining</span>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="flex gap-4 mb-6 border-b pb-4">
+            <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" id="filter-hide-no" class="form-checkbox h-5 w-5 text-blue-600" checked onchange="renderList()">
+                <span class="text-sm font-medium">Hide "Skip" Labs (Do = No)</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" id="filter-hide-solved" class="form-checkbox h-5 w-5 text-blue-600" onchange="renderList()">
+                <span class="text-sm font-medium">Hide Solved Labs</span>
+            </label>
+        </div>
+
+        <!-- Lab List Container -->
+        <div id="lab-container" class="space-y-6"></div>
+    </div>
+
+    <script>
+        // ==========================================
+        // PASTE THE JSON ARRAY HERE
+        // ==========================================
+        const rawData = [
+  {
+    "topic": "SQL injection",
+    "labs": [
+      { "name": "SQL injection vulnerability in WHERE clause allowing retrieval of hidden data", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "SQL injection vulnerability allowing login bypass", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "SQL injection attack, querying the database type and version on Oracle", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "SQL injection attack, querying the database type and version on MySQL and Microsoft", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "SQL injection attack, listing the database contents on non-Oracle databases", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "SQL injection attack, listing the database contents on Oracle", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "SQL injection UNION attack, determining the number of columns returned by the query", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "SQL injection UNION attack, finding a column containing text", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "SQL injection UNION attack, retrieving data from other tables", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "SQL injection UNION attack, retrieving multiple values in a single column", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Blind SQL injection with conditional responses", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Blind SQL injection with conditional errors", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Visible error-based SQL injection", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Blind SQL injection with time delays", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Blind SQL injection with time delays and information retrieval", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Blind SQL injection with out-of-band interaction", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Blind SQL injection with out-of-band data exfiltration", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "SQL injection with filter bypass via XML encoding", "level": "PRACTITIONER", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "Cross-site scripting",
+    "labs": [
+      { "name": "Reflected XSS into HTML context with nothing encoded", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Stored XSS into HTML context with nothing encoded", "level": "APPRENTICE", "status": "Not Solved", "do": "yes" },
+      { "name": "DOM XSS in document.write sink using source location.search", "level": "APPRENTICE", "status": "Not Solved", "do": "yes" },
+      { "name": "DOM XSS in innerHTML sink using source location.search", "level": "APPRENTICE", "status": "Not Solved", "do": "yes" },
+      { "name": "DOM XSS in jQuery anchor href attribute sink using location.search source", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "DOM XSS in jQuery selector sink using a hashchange event", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Reflected XSS into attribute with angle brackets HTML-encoded", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Stored XSS into anchor href attribute with double quotes HTML-encoded", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Reflected XSS into a JavaScript string with angle brackets HTML encoded", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "DOM XSS in document.write sink using source location.search inside a select element", "level": "PRACTITIONER", "status": "Not Solved", "do": "yes" },
+      { "name": "DOM XSS in AngularJS expression with angle brackets and double quotes HTML-encoded", "level": "PRACTITIONER", "status": "Not Solved", "do": "yes" },
+      { "name": "Reflected DOM XSS", "level": "PRACTITIONER", "status": "Not Solved", "do": "yes" },
+      { "name": "Stored DOM XSS", "level": "PRACTITIONER", "status": "Not Solved", "do": "yes" },
+      { "name": "Reflected XSS into HTML context with most tags and attributes blocked", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Reflected XSS into HTML context with all tags blocked except custom ones", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Reflected XSS with some SVG markup allowed", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Reflected XSS in canonical link tag", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Reflected XSS into a JavaScript string with single quote and backslash escaped", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Reflected XSS into a JavaScript string with angle brackets and double quotes HTML-encoded and single quotes escaped", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Stored XSS into onclick event with angle brackets and double quotes HTML-encoded and single quotes and backslash escaped", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Reflected XSS into a template literal with angle brackets, single, double quotes, backslash and backticks Unicode-escaped", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Exploiting cross-site scripting to steal cookies", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting cross-site scripting to capture passwords", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting XSS to bypass CSRF defenses", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Reflected XSS with AngularJS sandbox escape without strings", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Reflected XSS with AngularJS sandbox escape and CSP", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Reflected XSS with event handlers and href attributes blocked", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Reflected XSS in a JavaScript URL with some characters blocked", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Reflected XSS protected by very strict CSP, with dangling markup attack", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Reflected XSS protected by CSP, with CSP bypass", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "Cross-site request forgery (CSRF)",
+    "labs": [
+      { "name": "CSRF vulnerability with no defenses", "level": "APPRENTICE", "status": "Not Solved", "do": "yes" },
+      { "name": "CSRF where token validation depends on request method", "level": "PRACTITIONER", "status": "Not Solved", "do": "yes" },
+      { "name": "CSRF where token validation depends on token being present", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "CSRF where token is not tied to user session", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "CSRF where token is tied to non-session cookie", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "CSRF where token is duplicated in cookie", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "SameSite Lax bypass via method override", "level": "PRACTITIONER", "status": "Not Solved", "do": "yes" },
+      { "name": "SameSite Strict bypass via client-side redirect", "level": "PRACTITIONER", "status": "Not Solved", "do": "yes" },
+      { "name": "SameSite Strict bypass via sibling domain", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "SameSite Lax bypass via cookie refresh", "level": "PRACTITIONER", "status": "Not Solved", "do": "yes" },
+      { "name": "CSRF where Referer validation depends on header being present", "level": "PRACTITIONER", "status": "Not Solved", "do": "no" },
+      { "name": "CSRF with broken Referer validation", "level": "PRACTITIONER", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "Clickjacking",
+    "labs": [
+      { "name": "Basic clickjacking with CSRF token protection", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Clickjacking with form input data prefilled from a URL parameter", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Clickjacking with a frame buster script", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting clickjacking vulnerability to trigger DOM-based XSS", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Multistep clickjacking", "level": "PRACTITIONER", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "DOM-based vulnerabilities",
+    "labs": [
+      { "name": "DOM XSS using web messages", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "DOM XSS using web messages and a JavaScript URL", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "DOM XSS using web messages and JSON.parse", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "DOM-based open redirection", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "DOM-based cookie manipulation", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting DOM clobbering to enable XSS", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Clobbering DOM attributes to bypass HTML filters", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "Cross-origin resource sharing (CORS)",
+    "labs": [
+      { "name": "CORS vulnerability with basic origin reflection", "level": "APPRENTICE", "status": "Not Solved", "do": "yes" },
+      { "name": "CORS vulnerability with trusted null origin", "level": "APPRENTICE", "status": "Not Solved", "do": "yes" },
+      { "name": "CORS vulnerability with trusted insecure protocols", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" }
+    ]
+  },
+  {
+    "topic": "XML external entity (XXE) injection",
+    "labs": [
+      { "name": "Exploiting XXE using external entities to retrieve files", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting XXE to perform SSRF attacks", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Blind XXE with out-of-band interaction", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Blind XXE with out-of-band interaction via XML parameter entities", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting blind XXE to exfiltrate data using a malicious external DTD", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting blind XXE to retrieve data via error messages", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting XInclude to retrieve files", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting XXE via image file upload", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting XXE to retrieve data by repurposing a local DTD", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "Server-side request forgery (SSRF)",
+    "labs": [
+      { "name": "Basic SSRF against the local server", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Basic SSRF against another back-end system", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Blind SSRF with out-of-band detection", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "SSRF with blacklist-based input filter", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "SSRF with filter bypass via open redirection vulnerability", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Blind SSRF with Shellshock exploitation", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "SSRF with whitelist-based input filter", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "HTTP request smuggling",
+    "labs": [
+      { "name": "HTTP request smuggling, confirming a CL.TE vulnerability via differential responses", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "HTTP request smuggling, confirming a TE.CL vulnerability via differential responses", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Exploiting HTTP request smuggling to bypass front-end security controls, CL.TE vulnerability", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Exploiting HTTP request smuggling to bypass front-end security controls, TE.CL vulnerability", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Exploiting HTTP request smuggling to reveal front-end request rewriting", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Exploiting HTTP request smuggling to capture other users' requests", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Exploiting HTTP request smuggling to deliver reflected XSS", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Response queue poisoning via H2.TE request smuggling", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "H2.CL request smuggling", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "HTTP/2 request smuggling via CRLF injection", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "HTTP/2 request splitting via CRLF injection", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "0.CL request smuggling", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "CL.0 request smuggling", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "HTTP request smuggling, basic CL.TE vulnerability", "level": "PRACTITIONER", "status": "Not Solved", "do": "yes" },
+      { "name": "HTTP request smuggling, basic TE.CL vulnerability", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "HTTP request smuggling, obfuscating the TE header", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Exploiting HTTP request smuggling to perform web cache poisoning", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Exploiting HTTP request smuggling to perform web cache deception", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Bypassing access controls via HTTP/2 request tunnelling", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Web cache poisoning via HTTP/2 request tunnelling", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Client-side desync", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Server-side pause-based request smuggling", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "OS command injection",
+    "labs": [
+      { "name": "OS command injection, simple case", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Blind OS command injection with time delays", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Blind OS command injection with output redirection", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Blind OS command injection with out-of-band interaction", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Blind OS command injection with out-of-band data exfiltration", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" }
+    ]
+  },
+  {
+    "topic": "Server-side template injection",
+    "labs": [
+      { "name": "Basic server-side template injection", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Basic server-side template injection (code context)", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Server-side template injection using documentation", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Server-side template injection in an unknown language with a documented exploit", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Server-side template injection with information disclosure via user-supplied objects", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Server-side template injection in a sandboxed environment", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Server-side template injection with a custom exploit", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "Path traversal",
+    "labs": [
+      { "name": "File path traversal, simple case", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "File path traversal, traversal sequences blocked with absolute path bypass", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "File path traversal, traversal sequences stripped non-recursively", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "File path traversal, traversal sequences stripped with superfluous URL-decode", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "File path traversal, validation of start of path", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "File path traversal, validation of file extension with null byte bypass", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" }
+    ]
+  },
+  {
+    "topic": "Access control vulnerabilities",
+    "labs": [
+      { "name": "Unprotected admin functionality", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Unprotected admin functionality with unpredictable URL", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "User role controlled by request parameter", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "User role can be modified in user profile", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "User ID controlled by request parameter", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "User ID controlled by request parameter, with unpredictable user IDs", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "User ID controlled by request parameter with data leakage in redirect", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "User ID controlled by request parameter with password disclosure", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Insecure direct object references", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "URL-based access control can be circumvented", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Method-based access control can be circumvented", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Multi-step process with no access control on one step", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Referer-based access control", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" }
+    ]
+  },
+  {
+    "topic": "Authentication",
+    "labs": [
+      { "name": "Username enumeration via different responses", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "2FA simple bypass", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Password reset broken logic", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Username enumeration via subtly different responses", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Username enumeration via response timing", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Broken brute-force protection, IP block", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Username enumeration via account lock", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "2FA broken logic", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Brute-forcing a stay-logged-in cookie", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Offline password cracking", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Password reset poisoning via middleware", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Password brute-force via password change", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Broken brute-force protection, multiple credentials per request", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "2FA bypass using a brute-force attack", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "WebSockets",
+    "labs": [
+      { "name": "Manipulating WebSocket messages to exploit vulnerabilities", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Cross-site WebSocket hijacking", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Manipulating the WebSocket handshake to exploit vulnerabilities", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" }
+    ]
+  },
+  {
+    "topic": "Web cache poisoning",
+    "labs": [
+      { "name": "Web cache poisoning with an unkeyed header", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Web cache poisoning with an unkeyed cookie", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Web cache poisoning with multiple headers", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Targeted web cache poisoning using an unknown header", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Web cache poisoning via an unkeyed query string", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Web cache poisoning via an unkeyed query parameter", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Parameter cloaking", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Web cache poisoning via a fat GET request", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "URL normalization", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Web cache poisoning to exploit a DOM vulnerability via a cache with strict cacheability criteria", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Combining web cache poisoning vulnerabilities", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Cache key injection", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Internal cache poisoning", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "Insecure deserialization",
+    "labs": [
+      { "name": "Modifying serialized objects", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Modifying serialized data types", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Using application functionality to exploit insecure deserialization", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Arbitrary object injection in PHP", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting Java deserialization with Apache Commons", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting PHP deserialization with a pre-built gadget chain", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting Ruby deserialization using a documented gadget chain", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Developing a custom gadget chain for Java deserialization", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Developing a custom gadget chain for PHP deserialization", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Using PHAR deserialization to deploy a custom gadget chain", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "Information disclosure",
+    "labs": [
+      { "name": "Information disclosure in error messages", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Information disclosure on debug page", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Source code disclosure via backup files", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Authentication bypass via information disclosure", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Information disclosure in version control history", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" }
+    ]
+  },
+  {
+    "topic": "Business logic vulnerabilities",
+    "labs": [
+      { "name": "Excessive trust in client-side controls", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "High-level logic vulnerability", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Inconsistent security controls", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Flawed enforcement of business rules", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Low-level logic flaw", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Inconsistent handling of exceptional input", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Weak isolation on dual-use endpoint", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Insufficient workflow validation", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Authentication bypass via flawed state machine", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Infinite money logic flaw", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Authentication bypass via encryption oracle", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Bypassing access controls using email address parsing discrepancies", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "HTTP Host header attacks",
+    "labs": [
+      { "name": "Basic password reset poisoning", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Host header authentication bypass", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Web cache poisoning via ambiguous requests", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Routing-based SSRF", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "SSRF via flawed request parsing", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Host validation bypass via connection state attack", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Password reset poisoning via dangling markup", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "OAuth authentication",
+    "labs": [
+      { "name": "Authentication bypass via OAuth implicit flow", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "SSRF via OpenID dynamic client registration", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Forced OAuth profile linking", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "OAuth account hijacking via redirect_uri", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Stealing OAuth access tokens via an open redirect", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Stealing OAuth access tokens via a proxy page", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "File upload vulnerabilities",
+    "labs": [
+      { "name": "Remote code execution via web shell upload", "level": "APPRENTICE", "status": "Not Solved", "do": "yes" },
+      { "name": "Web shell upload via Content-Type restriction bypass", "level": "APPRENTICE", "status": "Not Solved", "do": "yes" },
+      { "name": "Web shell upload via path traversal", "level": "PRACTITIONER", "status": "Not Solved", "do": "yes" },
+      { "name": "Web shell upload via extension blacklist bypass", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Web shell upload via obfuscated file extension", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Remote code execution via polyglot web shell upload", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Web shell upload via race condition", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "JWT",
+    "labs": [
+      { "name": "JWT authentication bypass via unverified signature", "level": "APPRENTICE", "status": "Not Solved", "do": "yes" },
+      { "name": "JWT authentication bypass via flawed signature verification", "level": "APPRENTICE", "status": "Not Solved", "do": "yes" },
+      { "name": "JWT authentication bypass via weak signing key", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "JWT authentication bypass via jwk header injection", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "JWT authentication bypass via jku header injection", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "JWT authentication bypass via kid header path traversal", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "JWT authentication bypass via algorithm confusion", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "JWT authentication bypass via algorithm confusion with no exposed key", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "Essential skills",
+    "labs": [
+      { "name": "Discovering vulnerabilities quickly with targeted scanning", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Scanning non-standard data structures", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" }
+    ]
+  },
+  {
+    "topic": "Prototype pollution",
+    "labs": [
+      { "name": "Client-side prototype pollution via browser APIs", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "DOM XSS via client-side prototype pollution", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "DOM XSS via an alternative prototype pollution vector", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Client-side prototype pollution via flawed sanitization", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Client-side prototype pollution in third-party libraries", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Privilege escalation via server-side prototype pollution", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Detecting server-side prototype pollution without polluted property reflection", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Bypassing flawed input filters for server-side prototype pollution", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Remote code execution via server-side prototype pollution", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exfiltrating sensitive data via server-side prototype pollution", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "GraphQL API vulnerabilities",
+    "labs": [
+      { "name": "Accessing private GraphQL posts", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Accidental exposure of private GraphQL fields", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Finding a hidden GraphQL endpoint", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Bypassing GraphQL brute force protections", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Performing CSRF exploits over GraphQL", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" }
+    ]
+  },
+  {
+    "topic": "Race conditions",
+    "labs": [
+      { "name": "Limit overrun race conditions", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Bypassing rate limits via race conditions", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Multi-endpoint race conditions", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Single-endpoint race conditions", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting time-sensitive vulnerabilities", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Partial construction race conditions", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "NoSQL injection",
+    "labs": [
+      { "name": "Detecting NoSQL injection", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting NoSQL operator injection to bypass authentication", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting NoSQL injection to extract data", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting NoSQL operator injection to extract unknown fields", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" }
+    ]
+  },
+  {
+    "topic": "API testing",
+    "labs": [
+      { "name": "Exploiting an API endpoint using documentation", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting server-side parameter pollution in a query string", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Finding and exploiting an unused API endpoint", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting a mass assignment vulnerability", "level": "PRACTITIONER", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting server-side parameter pollution in a REST URL", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "Web LLM attacks",
+    "labs": [
+      { "name": "Exploiting LLM APIs with excessive agency", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting vulnerabilities in LLM APIs", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Indirect prompt injection", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Exploiting insecure output handling in LLMs", "level": "EXPERT", "status": "Not solved", "do": "no" },
+      { "name": "Exploiting AI agents to perform destructive actions", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting AI agents to exfiltrate sensitive information", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting AI agents to trigger secondary vulnerabilities", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Bypassing AI scanner defenses to exfiltrate sensitive information", "level": "PRACTITIONER", "status": "Not solved", "do": "no" }
+    ]
+  },
+  {
+    "topic": "Web cache deception",
+    "labs": [
+      { "name": "Exploiting path mapping for web cache deception", "level": "APPRENTICE", "status": "Not solved", "do": "yes" },
+      { "name": "Exploiting path delimiters for web cache deception", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Exploiting origin server normalization for web cache deception", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Exploiting cache server normalization for web cache deception", "level": "PRACTITIONER", "status": "Not solved", "do": "no" },
+      { "name": "Exploiting exact-match cache rules for web cache deception", "level": "EXPERT", "status": "Not solved", "do": "no" }
+    ]
+  }
+]
+        // ==========================================
+
+        // Load saved state from LocalStorage or initialize
+        let savedState = JSON.parse(localStorage.getItem('portswigger_state')) || {};
+
+        // Merge user's initial copy-pasted 'status' into savedState if it doesn't exist
+        rawData.forEach(category => {
+            category.labs.forEach(lab => {
+                if(lab.status === "Solved" && savedState[lab.name] === undefined) {
+                    savedState[lab.name] = true;
+                } else if (savedState[lab.name] === undefined) {
+                    savedState[lab.name] = false;
+                }
+            });
+        });
+        saveState();
+
+        function saveState() {
+            localStorage.setItem('portswigger_state', JSON.stringify(savedState));
+        }
+
+        function toggleLab(labName, isChecked) {
+            savedState[labName] = isChecked;
+            saveState();
+            renderList();
+        }
+
+        function renderList() {
+            const container = document.getElementById('lab-container');
+            const hideNo = document.getElementById('filter-hide-no').checked;
+            const hideSolved = document.getElementById('filter-hide-solved').checked;
+            
+            container.innerHTML = '';
+            
+            let totalMustDo = 0;
+            let totalSolved = 0;
+
+            rawData.forEach(category => {
+                let categoryHtml = `<div class="mb-4"><h2 class="text-xl font-bold border-b-2 border-gray-200 pb-1 mb-3 text-gray-700">${category.topic}</h2><div class="space-y-2">`;
+                let visibleLabsCount = 0;
+
+                category.labs.forEach(lab => {
+                    const isSolved = savedState[lab.name];
+                    const isMustDo = lab.do === "yes";
+
+                    if(isMustDo) {
+                        totalMustDo++;
+                        if(isSolved) totalSolved++;
+                    }
+
+                    // Apply UI Filters
+                    if (hideNo && !isMustDo) return;
+                    if (hideSolved && isSolved) return;
+
+                    visibleLabsCount++;
+
+                    const badgeColor = lab.level === "APPRENTICE" ? "bg-green-100 text-green-800" : 
+                                       lab.level === "PRACTITIONER" ? "bg-blue-100 text-blue-800" : "bg-red-100 text-red-800";
+                    
+                    const cardClass = isMustDo ? 'do-yes' : 'do-no';
+                    const textClass = isSolved ? 'solved-item' : '';
+
+                    categoryHtml += `
+                        <div class="flex items-center p-3 rounded shadow-sm border ${cardClass}">
+                            <input type="checkbox" class="h-5 w-5 text-blue-600 rounded mr-4 cursor-pointer" 
+                                ${isSolved ? 'checked' : ''} 
+                                onchange="toggleLab('${lab.name.replace(/'/g, "\\'")}', this.checked)">
+                            
+                            <div class="flex-1 ${textClass}">
+                                <div class="text-sm font-semibold">${lab.name}</div>
+                                <div class="text-xs mt-1">
+                                    <span class="px-2 py-0.5 rounded font-medium ${badgeColor}">${lab.level}</span>
+                                    ${!isMustDo ? '<span class="ml-2 px-2 py-0.5 rounded font-medium bg-red-200 text-red-800">SKIP / TIME SINK</span>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                categoryHtml += `</div></div>`;
+                
+                // Only render category if there are visible labs inside it
+                if(visibleLabsCount > 0) {
+                    container.innerHTML += categoryHtml;
+                }
+            });
+
+            // Update stats
+            document.getElementById('stat-total').innerText = totalMustDo;
+            document.getElementById('stat-solved').innerText = totalSolved;
+            document.getElementById('stat-remaining').innerText = totalMustDo - totalSolved;
+        }
+
+        // Initial render
+        renderList();
+    </script>
+</body>
+</html>
